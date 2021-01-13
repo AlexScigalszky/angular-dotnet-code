@@ -25,6 +25,11 @@
                     &gt;
                 </button>
             </li>
+            <li class="ml-2 page-item" *ngIf="total">
+                <div class="float-left mr-2 mt-1">
+                    <small>items {{ skip }} a {{ skip + pageSize}} de {{ total }} </small>
+                </div>
+            </li>
         </ul>
     </nav>
 </form>

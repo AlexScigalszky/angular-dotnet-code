@@ -1,4 +1,5 @@
 ﻿using Core.Entities.Base;
+using Core.Models;
 using Core.Repositories.Base;
 using Core.Specifications.Base;
 using Microsoft.EntityFrameworkCore;
@@ -125,7 +126,131 @@ namespace Infrastructure.Repository.Base
             return await query.ToListAsync();
         }
 
-        public virtual async Task<T> GetByIdAsync(long id)
+        public async Task<PageableList<T>> GetPageableListAsync(Expression<Func<T, bool>> predicate)
+        {
+            var items = await _dbContext
+                .Set<T>()
+                .Where(predicate)
+                .ToListAsync();
+
+            var total = await _dbContext
+                .Set<T>()
+                .Where(predicate)
+                .CountAsync();
+
+            return new PageableList<T>(total, 1, total, items);
+        }
+
+        public async Task<PageableList<T>> GetPageableListAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeString = null, bool disableTracking = true)
+        {
+            ICollection<T> items;
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (disableTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (!string.IsNullOrWhiteSpace(includeString))
+            {
+                query = query.Include(includeString);
+            }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            if (orderBy != null)
+            {
+                items = await orderBy(query).ToListAsync();
+            }
+            else
+            {
+                items = await query.ToListAsync();
+            }
+
+            var total = await query.CountAsync();
+
+            return new PageableList<T>(total, 1, total, items);
+
+        }
+
+        public async Task<PageableList<T>> GetPageableListAsync(Expression<Func<T, bool>> predicate = null, int? skip = null, int? take = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderByDescending = null, string[] includeString = null, bool disableTracking = true)
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            IQueryable<T> queryWithoutSkip;
+            if (disableTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            foreach (var includeStr in includeString)
+            {
+                if (!string.IsNullOrEmpty(includeStr))
+                {
+                    query = query.Include(includeStr);
+                }
+            }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            queryWithoutSkip = query;
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+                if (skip.HasValue)
+                {
+                    query = query.Skip(skip.Value);
+                }
+            }
+            else if (orderByDescending != null)
+            {
+                query = orderByDescending(query);
+            }
+
+            queryWithoutSkip = query;
+
+            if (take.HasValue)
+            {
+                queryWithoutSkip = query;
+                query = query.Take(take.Value);
+            }
+
+            var items = await query.ToListAsync();
+
+            var total = await queryWithoutSkip.CountAsync();
+
+            var pageNumber = skip.HasValue && take.HasValue
+                ? skip.Value / take.Value
+                : 1;
+
+            return new PageableList<T>(total, pageNumber, take ?? total, items);
+        }
+
+        public async Task<PageableList<T>> GetPageableListAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, List<Expression<Func<T, object>>> includes = null, bool disableTracking = true)
+        {
+            ICollection<T> items;
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (disableTracking) query = query.AsNoTracking();
+
+            if (includes != null) query = includes.Aggregate(query, (current, include) => current.Include(include));
+
+            if (predicate != null) query = query.Where(predicate);
+
+            if (orderBy != null)
+                items = await orderBy(query).ToListAsync();
+            items = await query.ToListAsync();
+
+            var total = await query.CountAsync();
+
+            return new PageableList<T>(total, 1, total, items);
+        }
+
+        public virtual async Task<T> GetByIdAsync(int id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
         }
@@ -145,6 +270,15 @@ namespace Infrastructure.Repository.Base
         public async Task UpdateAsync(T entity)
         {
             _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(IEnumerable<T> entities)
+        {
+            foreach (var entity in entities)
+            {
+                _dbContext.Entry(entity).State = EntityState.Modified;
+            }
             await _dbContext.SaveChangesAsync();
         }
 

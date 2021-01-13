@@ -3,6 +3,7 @@ using Application.Models.Role;
 using Application.Models.User;
 using Application.Models.UserRole;
 using AutoMapper;
+using Core.Models;
 using Domain.Entities;
 using System;
 
@@ -42,6 +43,8 @@ namespace Application.Mapper
             CreateMap<UserRole, UserRoleModel>()
                 .ReverseMap();
             CreateMap<Role, RoleModel>()
+                .ReverseMap();
+            CreateMap(typeof(PageableList<>), typeof(BaseListModel<>))
                 .ReverseMap();
 
             /**

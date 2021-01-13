@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Option } from 'src/app/data/schema/option';
 
@@ -10,7 +10,11 @@ export class PaginationComponent implements OnInit {
   NEXT = 'next';
   FORWARD = 'forward';
   INPUT_PAGE_SIZE = 'pageSize';
-  @Output() changed: EventEmitter<{ pageNumber: number; pageSize: number }> = new EventEmitter();
+  @Input() total: number = null;
+  @Output() changed: EventEmitter<{
+    pageNumber: number;
+    pageSize: number;
+  }> = new EventEmitter();
 
   currentPage = 1;
   sizeOptions: Option[] = [
@@ -43,13 +47,18 @@ export class PaginationComponent implements OnInit {
     return this.form.get(this.INPUT_PAGE_SIZE).value;
   }
 
+  get skip(): number {
+    return (this.currentPage - 1) * this.pageSize;
+  }
+
   buildForm() {
     this.form = this.fb.group({});
     this.form.addControl(this.INPUT_PAGE_SIZE, this.fb.control(10, []));
   }
 
   changePagination(direction: string) {
-    this.currentPage = direction === this.NEXT ? this.currentPage + 1 : this.currentPage - 1;
+    this.currentPage =
+      direction === this.NEXT ? this.currentPage + 1 : this.currentPage - 1;
     this.currentPage = this.currentPage < 1 ? 1 : this.currentPage;
     this.onSubmit();
   }
@@ -57,7 +66,7 @@ export class PaginationComponent implements OnInit {
   onSubmit() {
     this.changed.next({
       pageNumber: this.currentPage,
-      pageSize: this.pageSize
-    })
+      pageSize: this.pageSize,
+    });
   }
 }

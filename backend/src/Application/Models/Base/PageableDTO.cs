@@ -1,12 +1,12 @@
 ﻿namespace Application.Models.Base
 {
-    public class PageableModelDTO : BaseDto
+    public class PageableDTO : BaseDto
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string OrderBy { get; set; }
 
-        public PageableModelDTO()
+        public PageableDTO()
         {
             PageNumber = 1;
             PageSize = 10;
