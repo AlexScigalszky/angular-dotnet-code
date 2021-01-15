@@ -11,6 +11,7 @@ namespace Core.Repositories.Base
     public interface IRepository<T> // where T : Entity (COMMENTED JUST FOR A WHILE)
     {
         Task<IReadOnlyList<T>> GetAllAsync();
+        IQueryable<T> GetQueryable(ISpecification<T> spec);
         Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate);
         Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate = null,
                                         Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
@@ -31,7 +32,7 @@ namespace Core.Repositories.Base
                                                     List<Expression<Func<T, object>>> includes = null,
                                                     bool disableTracking = true);
         Task<PageableList<T>> GetPageableListAsync(ISpecification<T> spec);
-        Task<T> GetByIdAsync(int id);
+        Task<T> GetByIdAsync(long id);
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task UpdateAsync(IEnumerable<T> entities);

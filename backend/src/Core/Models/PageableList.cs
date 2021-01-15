@@ -14,7 +14,7 @@ namespace Core.Models
         {
             List = new List<T>();
         }
-        public PageableList(int CountTotal, int PageNumber, int PageSize, string OrderBy, ICollection<T> List)
+        public PageableList(int CountTotal, int PageNumber, int PageSize, ICollection<T> List)
         {
             this.CountTotal = CountTotal;
             this.PageNumber = PageNumber;

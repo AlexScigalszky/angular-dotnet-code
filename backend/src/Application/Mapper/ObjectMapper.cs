@@ -1,4 +1,5 @@
-﻿using Application.Models.Product;
+﻿using Application.Models.Base;
+using Application.Models.Product;
 using Application.Models.Role;
 using Application.Models.User;
 using Application.Models.UserRole;

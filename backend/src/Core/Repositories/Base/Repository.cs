@@ -25,6 +25,11 @@ namespace Infrastructure.Repository.Base
             return await _dbContext.Set<T>().ToListAsync();
         }
 
+        public IQueryable<T> GetQueryable(ISpecification<T> spec)
+        {
+            return ApplySpecification(spec);
+        }
+
         public async Task<IReadOnlyList<T>> GetAsync(ISpecification<T> spec)
         {
             return await ApplySpecification(spec).ToListAsync();
@@ -124,6 +129,18 @@ namespace Infrastructure.Repository.Base
             if (orderBy != null)
                 return await orderBy(query).ToListAsync();
             return await query.ToListAsync();
+        }
+
+        public async Task<PageableList<T>> GetPageableListAsync(ISpecification<T> spec)
+        {
+            var items = await ApplySpecification(spec).ToListAsync();
+
+            var total = await _dbContext
+                .Set<T>()
+                .Where(spec.Criteria)
+                .CountAsync();
+
+            return new PageableList<T>(total, 1, total, items);
         }
 
         public async Task<PageableList<T>> GetPageableListAsync(Expression<Func<T, bool>> predicate)
@@ -250,7 +267,7 @@ namespace Infrastructure.Repository.Base
             return new PageableList<T>(total, 1, total, items);
         }
 
-        public virtual async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T> GetByIdAsync(long id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
         }
