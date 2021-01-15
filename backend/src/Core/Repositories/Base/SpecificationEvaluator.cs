@@ -11,6 +11,12 @@ namespace Infrastructure.Repository.Base
         {
             var query = inputQuery;
 
+            // modify the IQueryable using the specification's AskNoTracking condition
+            if (specification.AsNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
             // modify the IQueryable using the specification's criteria expression
             if (specification.Criteria != null)
             {

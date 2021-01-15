@@ -13,6 +13,7 @@ namespace Core.Specifications.Base
         public Expression<Func<T, bool>> Criteria { get; }
         public List<Expression<Func<T, object>>> Includes { get; } = new List<Expression<Func<T, object>>>();
         public List<string> IncludeStrings { get; } = new List<string>();
+        public bool AsNoTracking { get; private set; }
         public Expression<Func<T, object>> OrderBy { get; private set; }
         public Expression<Func<T, object>> OrderByDescending { get; private set; }
         public int Take { get; private set; }
@@ -26,6 +27,10 @@ namespace Core.Specifications.Base
         protected virtual void AddInclude(string includeString)
         {
             IncludeStrings.Add(includeString);
+        }
+        protected virtual void SetAsNoTracking(bool asNoTracking = false)
+        {
+            AsNoTracking = asNoTracking;
         }
         protected virtual void ApplyPaging(int skip, int take)
         {
